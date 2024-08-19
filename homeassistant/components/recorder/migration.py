@@ -15,7 +15,6 @@ from uuid import UUID
 import sqlalchemy
 from sqlalchemy import ForeignKeyConstraint, MetaData, Table, func, text, update
 from sqlalchemy.engine import CursorResult, Engine
-from sqlalchemy.engine.interfaces import ReflectedForeignKeyConstraint
 from sqlalchemy.exc import (
     DatabaseError,
     IntegrityError,
@@ -52,6 +51,7 @@ from .auto_repairs.statistics.schema import (
 from .const import (
     CONTEXT_ID_AS_BINARY_SCHEMA_VERSION,
     EVENT_TYPE_IDS_SCHEMA_VERSION,
+    LEGACY_STATES_EVENT_ID_INDEX_SCHEMA_VERSION,
     STATES_META_SCHEMA_VERSION,
     SupportedDialect,
 )
@@ -118,7 +118,17 @@ from .util import (
 if TYPE_CHECKING:
     from . import Recorder
 
-LIVE_MIGRATION_MIN_SCHEMA_VERSION = 0
+# Live schema migration supported starting from schema version 42 or newer
+# Schema version 41 was introduced in HA Core 2023.4
+# Schema version 42 was introduced in HA Core 2023.11
+LIVE_MIGRATION_MIN_SCHEMA_VERSION = 42
+
+MIGRATION_NOTE_OFFLINE = (
+    "Note: this may take several hours on large databases and slow machines. "
+    "Home Assistant will not start until the upgrade is completed. Please be patient "
+    "and do not turn off or restart Home Assistant while the upgrade is in progress!"
+)
+
 _EMPTY_ENTITY_ID = "missing.entity_id"
 _EMPTY_EVENT_TYPE = "missing_event_type"
 
@@ -188,13 +198,14 @@ def get_schema_version(session_maker: Callable[[], Session]) -> int | None:
         return None
 
 
-@dataclass
+@dataclass(frozen=True)
 class SchemaValidationStatus:
     """Store schema validation status."""
 
     current_version: int
+    migration_needed: bool
     schema_errors: set[str]
-    valid: bool
+    start_version: int
 
 
 def _schema_is_current(current_version: int) -> bool:
@@ -222,9 +233,9 @@ def validate_db_schema(
         # columns may otherwise not exist etc.
         schema_errors = _find_schema_errors(hass, instance, session_maker)
 
-    valid = is_current and not schema_errors
-
-    return SchemaValidationStatus(current_version, schema_errors, valid)
+    return SchemaValidationStatus(
+        current_version, not is_current, schema_errors, current_version
+    )
 
 
 def _find_schema_errors(
@@ -260,35 +271,33 @@ def pre_migrate_schema(engine: Engine) -> None:
         )
 
 
-def migrate_schema(
+def _migrate_schema(
     instance: Recorder,
     hass: HomeAssistant,
     engine: Engine,
     session_maker: Callable[[], Session],
     schema_status: SchemaValidationStatus,
-) -> None:
+    end_version: int,
+) -> SchemaValidationStatus:
     """Check if the schema needs to be upgraded."""
     current_version = schema_status.current_version
-    if current_version != SCHEMA_VERSION:
+    start_version = schema_status.start_version
+
+    if current_version < end_version:
         _LOGGER.warning(
-            "Database is about to upgrade from schema version: %s to: %s",
+            "The database is about to upgrade from schema version %s to %s%s",
             current_version,
-            SCHEMA_VERSION,
+            end_version,
+            f". {MIGRATION_NOTE_OFFLINE}"
+            if current_version < LIVE_MIGRATION_MIN_SCHEMA_VERSION
+            else "",
         )
-    db_ready = False
-    for version in range(current_version, SCHEMA_VERSION):
-        if (
-            live_migration(dataclass_replace(schema_status, current_version=version))
-            and not db_ready
-        ):
-            db_ready = True
-            instance.migration_is_live = True
-            hass.add_job(instance.async_set_db_ready)
+        schema_status = dataclass_replace(schema_status, current_version=end_version)
+
+    for version in range(current_version, end_version):
         new_version = version + 1
         _LOGGER.info("Upgrading recorder db schema to version %s", new_version)
-        _apply_update(
-            instance, hass, engine, session_maker, new_version, current_version
-        )
+        _apply_update(instance, hass, engine, session_maker, new_version, start_version)
         with session_scope(session=session_maker()) as session:
             session.add(SchemaChanges(schema_version=new_version))
 
@@ -296,6 +305,37 @@ def migrate_schema(
         # so its clear that the upgrade is done
         _LOGGER.warning("Upgrade to version %s done", new_version)
 
+    return schema_status
+
+
+def migrate_schema_non_live(
+    instance: Recorder,
+    hass: HomeAssistant,
+    engine: Engine,
+    session_maker: Callable[[], Session],
+    schema_status: SchemaValidationStatus,
+) -> SchemaValidationStatus:
+    """Check if the schema needs to be upgraded."""
+    end_version = LIVE_MIGRATION_MIN_SCHEMA_VERSION
+    return _migrate_schema(
+        instance, hass, engine, session_maker, schema_status, end_version
+    )
+
+
+def migrate_schema_live(
+    instance: Recorder,
+    hass: HomeAssistant,
+    engine: Engine,
+    session_maker: Callable[[], Session],
+    schema_status: SchemaValidationStatus,
+) -> SchemaValidationStatus:
+    """Check if the schema needs to be upgraded."""
+    end_version = SCHEMA_VERSION
+    schema_status = _migrate_schema(
+        instance, hass, engine, session_maker, schema_status, end_version
+    )
+
+    # Repairs are currently done during the live migration
     if schema_errors := schema_status.schema_errors:
         _LOGGER.warning(
             "Database is about to correct DB schema errors: %s",
@@ -305,11 +345,14 @@ def migrate_schema(
         states_correct_db_schema(instance, schema_errors)
         events_correct_db_schema(instance, schema_errors)
 
-    if current_version != SCHEMA_VERSION:
-        instance.queue_task(PostSchemaMigrationTask(current_version, SCHEMA_VERSION))
+    start_version = schema_status.start_version
+    if start_version != SCHEMA_VERSION:
+        instance.queue_task(PostSchemaMigrationTask(start_version, SCHEMA_VERSION))
         # Make sure the post schema migration task is committed in case
         # the next task does not have commit_before = True
         instance.queue_task(CommitTask())
+
+    return schema_status
 
 
 def _create_index(
@@ -331,7 +374,7 @@ def _create_index(
     _LOGGER.debug("Creating %s index", index_name)
     _LOGGER.warning(
         "Adding index `%s` to table `%s`. Note: this can take several "
-        "minutes on large databases and slow computers. Please "
+        "minutes on large databases and slow machines. Please "
         "be patient!",
         index_name,
         table_name,
@@ -380,7 +423,7 @@ def _drop_index(
     """
     _LOGGER.warning(
         "Dropping index `%s` from table `%s`. Note: this can take several "
-        "minutes on large databases and slow computers. Please "
+        "minutes on large databases and slow machines. Please "
         "be patient!",
         index_name,
         table_name,
@@ -431,7 +474,7 @@ def _add_columns(
     _LOGGER.warning(
         (
             "Adding columns %s to table %s. Note: this can take several "
-            "minutes on large databases and slow computers. Please "
+            "minutes on large databases and slow machines. Please "
             "be patient!"
         ),
         ", ".join(column.split(" ")[0] for column in columns_def),
@@ -493,7 +536,7 @@ def _modify_columns(
     _LOGGER.warning(
         (
             "Modifying columns %s in table %s. Note: this can take several "
-            "minutes on large databases and slow computers. Please "
+            "minutes on large databases and slow machines. Please "
             "be patient!"
         ),
         ", ".join(column.split(" ")[0] for column in columns_def),
@@ -536,12 +579,24 @@ def _modify_columns(
                 _LOGGER.exception(
                     "Could not modify column %s in table %s", column_def, table_name
                 )
+                raise
 
 
 def _update_states_table_with_foreign_key_options(
     session_maker: Callable[[], Session], engine: Engine
 ) -> None:
-    """Add the options to foreign key constraints."""
+    """Add the options to foreign key constraints.
+
+    This is not supported for SQLite because it does not support
+    dropping constraints.
+    """
+
+    if engine.dialect.name not in (SupportedDialect.MYSQL, SupportedDialect.POSTGRESQL):
+        raise RuntimeError(
+            "_update_states_table_with_foreign_key_options not supported for "
+            f"{engine.dialect.name}"
+        )
+
     inspector = sqlalchemy.inspect(engine)
     tmp_states_table = Table(TABLE_STATES, MetaData())
     alters = [
@@ -552,7 +607,7 @@ def _update_states_table_with_foreign_key_options(
             "columns": foreign_key["constrained_columns"],
         }
         for foreign_key in inspector.get_foreign_keys(TABLE_STATES)
-        if foreign_key["name"]
+        if foreign_key["name"]  # It's not possible to drop an unnamed constraint
         and (
             # MySQL/MariaDB will have empty options
             not foreign_key.get("options")
@@ -584,20 +639,26 @@ def _update_states_table_with_foreign_key_options(
                 _LOGGER.exception(
                     "Could not update foreign options in %s table", TABLE_STATES
                 )
+                raise
 
 
 def _drop_foreign_key_constraints(
     session_maker: Callable[[], Session], engine: Engine, table: str, column: str
-) -> list[tuple[str, str, ReflectedForeignKeyConstraint]]:
-    """Drop foreign key constraints for a table on specific columns."""
-    inspector = sqlalchemy.inspect(engine)
-    dropped_constraints = [
-        (table, column, foreign_key)
-        for foreign_key in inspector.get_foreign_keys(table)
-        if foreign_key["name"] and foreign_key["constrained_columns"] == [column]
-    ]
+) -> None:
+    """Drop foreign key constraints for a table on specific columns.
 
-    ## Bind the ForeignKeyConstraints to the table
+    This is not supported for SQLite because it does not support
+    dropping constraints.
+    """
+
+    if engine.dialect.name not in (SupportedDialect.MYSQL, SupportedDialect.POSTGRESQL):
+        raise RuntimeError(
+            f"_drop_foreign_key_constraints not supported for {engine.dialect.name}"
+        )
+
+    inspector = sqlalchemy.inspect(engine)
+
+    ## Find matching named constraints and bind the ForeignKeyConstraints to the table
     tmp_table = Table(table, MetaData())
     drops = [
         ForeignKeyConstraint((), (), name=foreign_key["name"], table=tmp_table)
@@ -616,26 +677,27 @@ def _drop_foreign_key_constraints(
                     TABLE_STATES,
                     column,
                 )
-
-    return dropped_constraints
+                raise
 
 
 def _restore_foreign_key_constraints(
     session_maker: Callable[[], Session],
     engine: Engine,
-    dropped_constraints: list[tuple[str, str, ReflectedForeignKeyConstraint]],
+    foreign_columns: list[tuple[str, str, str | None, str | None]],
 ) -> None:
     """Restore foreign key constraints."""
-    for table, column, dropped_constraint in dropped_constraints:
+    for table, column, foreign_table, foreign_column in foreign_columns:
         constraints = Base.metadata.tables[table].foreign_key_constraints
         for constraint in constraints:
             if constraint.column_keys == [column]:
                 break
         else:
-            _LOGGER.info(
-                "Did not find a matching constraint for %s", dropped_constraint
-            )
+            _LOGGER.info("Did not find a matching constraint for %s.%s", table, column)
             continue
+
+        if TYPE_CHECKING:
+            assert foreign_table is not None
+            assert foreign_column is not None
 
         # AddConstraint mutates the constraint passed to it, we need to
         # undo that to avoid changing the behavior of the table schema.
@@ -643,13 +705,156 @@ def _restore_foreign_key_constraints(
         create_rule = constraint._create_rule  # noqa: SLF001
         add_constraint = AddConstraint(constraint)  # type: ignore[no-untyped-call]
         constraint._create_rule = create_rule  # noqa: SLF001
+        try:
+            _add_constraint(session_maker, add_constraint, table, column)
+        except IntegrityError:
+            _LOGGER.exception(
+                (
+                    "Could not update foreign options in %s table, will delete "
+                    "violations and try again"
+                ),
+                table,
+            )
+            _delete_foreign_key_violations(
+                session_maker, engine, table, column, foreign_table, foreign_column
+            )
+            _add_constraint(session_maker, add_constraint, table, column)
 
-        with session_scope(session=session_maker()) as session:
-            try:
-                connection = session.connection()
-                connection.execute(add_constraint)
-            except (InternalError, OperationalError):
-                _LOGGER.exception("Could not update foreign options in %s table", table)
+
+def _add_constraint(
+    session_maker: Callable[[], Session],
+    add_constraint: AddConstraint,
+    table: str,
+    column: str,
+) -> None:
+    """Add a foreign key constraint."""
+    _LOGGER.warning(
+        "Adding foreign key constraint to %s.%s. "
+        "Note: this can take several minutes on large databases and slow "
+        "machines. Please be patient!",
+        table,
+        column,
+    )
+    with session_scope(session=session_maker()) as session:
+        try:
+            connection = session.connection()
+            connection.execute(add_constraint)
+        except (InternalError, OperationalError):
+            _LOGGER.exception("Could not update foreign options in %s table", table)
+            raise
+
+
+def _delete_foreign_key_violations(
+    session_maker: Callable[[], Session],
+    engine: Engine,
+    table: str,
+    column: str,
+    foreign_table: str,
+    foreign_column: str,
+) -> None:
+    """Remove rows which violate the constraints."""
+    if engine.dialect.name not in (SupportedDialect.MYSQL, SupportedDialect.POSTGRESQL):
+        raise RuntimeError(
+            f"_delete_foreign_key_violations not supported for {engine.dialect.name}"
+        )
+
+    _LOGGER.warning(
+        "Rows in table %s where %s references non existing %s.%s will be %s. "
+        "Note: this can take several minutes on large databases and slow "
+        "machines. Please be patient!",
+        table,
+        column,
+        foreign_table,
+        foreign_column,
+        "set to NULL" if table == foreign_table else "deleted",
+    )
+
+    result: CursorResult | None = None
+    if table == foreign_table:
+        # In case of a foreign reference to the same table, we set invalid
+        # references to NULL instead of deleting as deleting rows may
+        # cause additional invalid references to be created. This is to handle
+        # old_state_id referencing a missing state.
+        if engine.dialect.name == SupportedDialect.MYSQL:
+            while result is None or result.rowcount > 0:
+                with session_scope(session=session_maker()) as session:
+                    # The subquery (SELECT {foreign_column} from {foreign_table}) is
+                    # to be compatible with old MySQL versions which do not allow
+                    # referencing the table being updated in the WHERE clause.
+                    result = session.connection().execute(
+                        text(
+                            f"UPDATE {table} as t1 "  # noqa: S608
+                            f"SET {column} = NULL "
+                            "WHERE ("
+                            f"t1.{column} IS NOT NULL AND "
+                            "NOT EXISTS "
+                            "(SELECT 1 "
+                            f"FROM (SELECT {foreign_column} from {foreign_table}) AS t2 "
+                            f"WHERE t2.{foreign_column} = t1.{column})) "
+                            "LIMIT 100000;"
+                        )
+                    )
+        elif engine.dialect.name == SupportedDialect.POSTGRESQL:
+            while result is None or result.rowcount > 0:
+                with session_scope(session=session_maker()) as session:
+                    # PostgreSQL does not support LIMIT in UPDATE clauses, so we
+                    # update matches from a limited subquery instead.
+                    result = session.connection().execute(
+                        text(
+                            f"UPDATE {table} "  # noqa: S608
+                            f"SET {column} = NULL "
+                            f"WHERE {column} in "
+                            f"(SELECT {column} from {table} as t1 "
+                            "WHERE ("
+                            f"t1.{column} IS NOT NULL AND "
+                            "NOT EXISTS "
+                            "(SELECT 1 "
+                            f"FROM {foreign_table} AS t2 "
+                            f"WHERE t2.{foreign_column} = t1.{column})) "
+                            "LIMIT 100000);"
+                        )
+                    )
+        return
+
+    if engine.dialect.name == SupportedDialect.MYSQL:
+        while result is None or result.rowcount > 0:
+            with session_scope(session=session_maker()) as session:
+                result = session.connection().execute(
+                    # We don't use an alias for the table we're deleting from,
+                    # support of the form `DELETE FROM table AS t1` was added in
+                    # MariaDB 11.6 and is not supported by MySQL. MySQL and older
+                    # MariaDB instead support the from `DELETE t1 from table AS t1`
+                    # which is undocumented for MariaDB.
+                    text(
+                        f"DELETE FROM {table} "  # noqa: S608
+                        "WHERE ("
+                        f"{table}.{column} IS NOT NULL AND "
+                        "NOT EXISTS "
+                        "(SELECT 1 "
+                        f"FROM {foreign_table} AS t2 "
+                        f"WHERE t2.{foreign_column} = {table}.{column})) "
+                        "LIMIT 100000;"
+                    )
+                )
+    elif engine.dialect.name == SupportedDialect.POSTGRESQL:
+        while result is None or result.rowcount > 0:
+            with session_scope(session=session_maker()) as session:
+                # PostgreSQL does not support LIMIT in DELETE clauses, so we
+                # delete matches from a limited subquery instead.
+                result = session.connection().execute(
+                    text(
+                        f"DELETE FROM {table} "  # noqa: S608
+                        f"WHERE {column} in "
+                        f"(SELECT {column} from {table} as t1 "
+                        "WHERE ("
+                        f"t1.{column} IS NOT NULL AND "
+                        "NOT EXISTS "
+                        "(SELECT 1 "
+                        f"FROM {foreign_table} AS t2 "
+                        f"WHERE t2.{foreign_column} = t1.{column})) "
+                        "LIMIT 100000);"
+                    )
+                )
 
 
 @database_job_retry_wrapper("Apply migration update", 10)
@@ -835,7 +1040,17 @@ class _SchemaVersion11Migrator(_SchemaVersionMigrator, target_version=11):
     def _apply_update(self) -> None:
         """Version specific update method."""
         _create_index(self.session_maker, "states", "ix_states_old_state_id")
-        _update_states_table_with_foreign_key_options(self.session_maker, self.engine)
+
+        # _update_states_table_with_foreign_key_options first drops foreign
+        # key constraints, and then re-adds them with the correct settings.
+        # This is not supported by SQLite
+        if self.engine.dialect.name in (
+            SupportedDialect.MYSQL,
+            SupportedDialect.POSTGRESQL,
+        ):
+            _update_states_table_with_foreign_key_options(
+                self.session_maker, self.engine
+            )
 
 
 class _SchemaVersion12Migrator(_SchemaVersionMigrator, target_version=12):
@@ -889,9 +1104,18 @@ class _SchemaVersion15Migrator(_SchemaVersionMigrator, target_version=15):
 class _SchemaVersion16Migrator(_SchemaVersionMigrator, target_version=16):
     def _apply_update(self) -> None:
         """Version specific update method."""
-        _drop_foreign_key_constraints(
-            self.session_maker, self.engine, TABLE_STATES, "old_state_id"
-        )
+        # Dropping foreign key constraints is not supported by SQLite
+        if self.engine.dialect.name in (
+            SupportedDialect.MYSQL,
+            SupportedDialect.POSTGRESQL,
+        ):
+            # Version 16 changes settings for the foreign key constraint on
+            # states.old_state_id. Dropping the constraint is not really correct
+            # we should have recreated it instead. Recreating the constraint now
+            # happens in the migration to schema version 47.
+            _drop_foreign_key_constraints(
+                self.session_maker, self.engine, TABLE_STATES, "old_state_id"
+            )
 
 
 class _SchemaVersion17Migrator(_SchemaVersionMigrator, target_version=17):
@@ -1416,6 +1640,56 @@ class _SchemaVersion43Migrator(_SchemaVersionMigrator, target_version=43):
 class _SchemaVersion44Migrator(_SchemaVersionMigrator, target_version=44):
     def _apply_update(self) -> None:
         """Version specific update method."""
+        # The changes in this version are identical to the changes in version
+        # 46. We apply the same changes again because the migration code previously
+        # swallowed errors which caused some users' databases to end up in an
+        # undefined state after the migration.
+
+
+class _SchemaVersion45Migrator(_SchemaVersionMigrator, target_version=45):
+    def _apply_update(self) -> None:
+        """Version specific update method."""
+        # The changes in this version are identical to the changes in version
+        # 47. We apply the same changes again because the migration code previously
+        # swallowed errors which caused some users' databases to end up in an
+        # undefined state after the migration.
+
+
+FOREIGN_COLUMNS = (
+    (
+        "events",
+        ("data_id", "event_type_id"),
+        (
+            ("data_id", "event_data", "data_id"),
+            ("event_type_id", "event_types", "event_type_id"),
+        ),
+    ),
+    (
+        "states",
+        ("event_id", "old_state_id", "attributes_id", "metadata_id"),
+        (
+            ("event_id", None, None),
+            ("old_state_id", "states", "state_id"),
+            ("attributes_id", "state_attributes", "attributes_id"),
+            ("metadata_id", "states_meta", "metadata_id"),
+        ),
+    ),
+    (
+        "statistics",
+        ("metadata_id",),
+        (("metadata_id", "statistics_meta", "id"),),
+    ),
+    (
+        "statistics_short_term",
+        ("metadata_id",),
+        (("metadata_id", "statistics_meta", "id"),),
+    ),
+)
+
+
+class _SchemaVersion46Migrator(_SchemaVersionMigrator, target_version=46):
+    def _apply_update(self) -> None:
+        """Version specific update method."""
         # We skip this step for SQLITE, it doesn't have differently sized integers
         if self.engine.dialect.name == SupportedDialect.SQLITE:
             return
@@ -1425,24 +1699,14 @@ class _SchemaVersion44Migrator(_SchemaVersionMigrator, target_version=44):
             else ""
         )
         # First drop foreign key constraints
-        foreign_columns = (
-            ("events", ("data_id", "event_type_id")),
-            ("states", ("event_id", "old_state_id", "attributes_id", "metadata_id")),
-            ("statistics", ("metadata_id",)),
-            ("statistics_short_term", ("metadata_id",)),
-        )
-        dropped_constraints = [
-            dropped_constraint
-            for table, columns in foreign_columns
-            for column in columns
-            for dropped_constraint in _drop_foreign_key_constraints(
-                self.session_maker, self.engine, table, column
-            )
-        ]
-        _LOGGER.debug("Dropped foreign key constraints: %s", dropped_constraints)
+        for table, columns, _ in FOREIGN_COLUMNS:
+            for column in columns:
+                _drop_foreign_key_constraints(
+                    self.session_maker, self.engine, table, column
+                )
 
         # Then modify the constrained columns
-        for table, columns in foreign_columns:
+        for table, columns, _ in FOREIGN_COLUMNS:
             _modify_columns(
                 self.session_maker,
                 self.engine,
@@ -1472,9 +1736,24 @@ class _SchemaVersion44Migrator(_SchemaVersionMigrator, target_version=44):
                 table,
                 [f"{column} {BIG_INTEGER_SQL} {identity_sql}"],
             )
-        # Finally restore dropped constraints
+
+
+class _SchemaVersion47Migrator(_SchemaVersionMigrator, target_version=47):
+    def _apply_update(self) -> None:
+        """Version specific update method."""
+        # We skip this step for SQLITE, it doesn't have differently sized integers
+        if self.engine.dialect.name == SupportedDialect.SQLITE:
+            return
+
+        # Restore constraints dropped in migration to schema version 46
         _restore_foreign_key_constraints(
-            self.session_maker, self.engine, dropped_constraints
+            self.session_maker,
+            self.engine,
+            [
+                (table, column, foreign_table, foreign_column)
+                for table, _, foreign_mappings in FOREIGN_COLUMNS
+                for column, foreign_table, foreign_column in foreign_mappings
+            ],
         )
 
 
@@ -1523,7 +1802,7 @@ def _correct_table_character_set_and_collation(
     _LOGGER.warning(
         "Updating character set and collation of table %s to utf8mb4. "
         "Note: this can take several minutes on large databases and slow "
-        "computers. Please be patient!",
+        "machines. Please be patient!",
         table,
     )
     with (
@@ -1912,13 +2191,20 @@ def cleanup_legacy_states_event_ids(instance: Recorder) -> bool:
         if instance.dialect_name == SupportedDialect.SQLITE:
             # SQLite does not support dropping foreign key constraints
             # so we have to rebuild the table
-            rebuild_sqlite_table(session_maker, instance.engine, States)
+            fk_remove_ok = rebuild_sqlite_table(session_maker, instance.engine, States)
         else:
-            _drop_foreign_key_constraints(
-                session_maker, instance.engine, TABLE_STATES, "event_id"
-            )
-        _drop_index(session_maker, "states", LEGACY_STATES_EVENT_ID_INDEX)
-        instance.use_legacy_events_index = False
+            try:
+                _drop_foreign_key_constraints(
+                    session_maker, instance.engine, TABLE_STATES, "event_id"
+                )
+            except (InternalError, OperationalError):
+                fk_remove_ok = False
+            else:
+                fk_remove_ok = True
+        if fk_remove_ok:
+            _drop_index(session_maker, "states", LEGACY_STATES_EVENT_ID_INDEX)
+            instance.use_legacy_events_index = False
+            _mark_migration_done(session, EventIDPostMigration)
 
     return True
 
@@ -1978,7 +2264,7 @@ class MigrationTask(RecorderTask):
             # Schedule a new migration task if this one didn't finish
             instance.queue_task(MigrationTask(self.migrator))
         else:
-            self.migrator.migration_done(instance)
+            self.migrator.migration_done(instance, None)
 
 
 @dataclass(slots=True)
@@ -1986,6 +2272,14 @@ class CommitBeforeMigrationTask(MigrationTask):
     """Base class for migration tasks which commit first."""
 
     commit_before = True
+
+
+@dataclass(frozen=True, kw_only=True)
+class NeedsMigrateResult:
+    """Container for the return value of BaseRunTimeMigration.needs_migrate_impl."""
+
+    needs_migrate: bool
+    migration_done: bool
 
 
 class BaseRunTimeMigration(ABC):
@@ -2003,24 +2297,26 @@ class BaseRunTimeMigration(ABC):
 
     def do_migrate(self, instance: Recorder, session: Session) -> None:
         """Start migration if needed."""
-        if self.needs_migrate(session):
+        if self.needs_migrate(instance, session):
             instance.queue_task(self.task(self))
         else:
-            self.migration_done(instance)
+            self.migration_done(instance, session)
 
     @staticmethod
     @abstractmethod
     def migrate_data(instance: Recorder) -> bool:
         """Migrate some data, returns True if migration is completed."""
 
-    def migration_done(self, instance: Recorder) -> None:
+    def migration_done(self, instance: Recorder, session: Session | None) -> None:
         """Will be called after migrate returns True or if migration is not needed."""
 
     @abstractmethod
-    def needs_migrate_query(self) -> StatementLambdaElement:
-        """Return the query to check if the migration needs to run."""
+    def needs_migrate_impl(
+        self, instance: Recorder, session: Session
+    ) -> NeedsMigrateResult:
+        """Return if the migration needs to run and if it is done."""
 
-    def needs_migrate(self, session: Session) -> bool:
+    def needs_migrate(self, instance: Recorder, session: Session) -> bool:
         """Return if the migration needs to run.
 
         If the migration needs to run, it will return True.
@@ -2038,13 +2334,30 @@ class BaseRunTimeMigration(ABC):
         # We do not know if the migration is done from the
         # migration changes table so we must check the data
         # This is the slow path
-        if not execute_stmt_lambda_element(session, self.needs_migrate_query()):
+        needs_migrate = self.needs_migrate_impl(instance, session)
+        if needs_migrate.migration_done:
             _mark_migration_done(session, self.__class__)
-            return False
-        return True
+        return needs_migrate.needs_migrate
 
 
-class StatesContextIDMigration(BaseRunTimeMigration):
+class BaseRunTimeMigrationWithQuery(BaseRunTimeMigration):
+    """Base class for run time migrations."""
+
+    @abstractmethod
+    def needs_migrate_query(self) -> StatementLambdaElement:
+        """Return the query to check if the migration needs to run."""
+
+    def needs_migrate_impl(
+        self, instance: Recorder, session: Session
+    ) -> NeedsMigrateResult:
+        """Return if the migration needs to run."""
+        needs_migrate = execute_stmt_lambda_element(session, self.needs_migrate_query())
+        return NeedsMigrateResult(
+            needs_migrate=bool(needs_migrate), migration_done=not needs_migrate
+        )
+
+
+class StatesContextIDMigration(BaseRunTimeMigrationWithQuery):
     """Migration to migrate states context_ids to binary format."""
 
     required_schema_version = CONTEXT_ID_AS_BINARY_SCHEMA_VERSION
@@ -2093,7 +2406,7 @@ class StatesContextIDMigration(BaseRunTimeMigration):
         return has_states_context_ids_to_migrate()
 
 
-class EventsContextIDMigration(BaseRunTimeMigration):
+class EventsContextIDMigration(BaseRunTimeMigrationWithQuery):
     """Migration to migrate events context_ids to binary format."""
 
     required_schema_version = CONTEXT_ID_AS_BINARY_SCHEMA_VERSION
@@ -2142,7 +2455,7 @@ class EventsContextIDMigration(BaseRunTimeMigration):
         return has_events_context_ids_to_migrate()
 
 
-class EventTypeIDMigration(BaseRunTimeMigration):
+class EventTypeIDMigration(BaseRunTimeMigrationWithQuery):
     """Migration to migrate event_type to event_type_ids."""
 
     required_schema_version = EVENT_TYPE_IDS_SCHEMA_VERSION
@@ -2215,7 +2528,7 @@ class EventTypeIDMigration(BaseRunTimeMigration):
         _LOGGER.debug("Migrating event_types done=%s", is_done)
         return is_done
 
-    def migration_done(self, instance: Recorder) -> None:
+    def migration_done(self, instance: Recorder, session: Session | None) -> None:
         """Will be called after migrate returns True."""
         _LOGGER.debug("Activating event_types manager as all data is migrated")
         instance.event_type_manager.active = True
@@ -2225,7 +2538,7 @@ class EventTypeIDMigration(BaseRunTimeMigration):
         return has_event_type_to_migrate()
 
 
-class EntityIDMigration(BaseRunTimeMigration):
+class EntityIDMigration(BaseRunTimeMigrationWithQuery):
     """Migration to migrate entity_ids to states_meta."""
 
     required_schema_version = STATES_META_SCHEMA_VERSION
@@ -2308,7 +2621,7 @@ class EntityIDMigration(BaseRunTimeMigration):
         _LOGGER.debug("Migrating entity_ids done=%s", is_done)
         return is_done
 
-    def migration_done(self, instance: Recorder) -> None:
+    def migration_done(self, instance: Recorder, _session: Session | None) -> None:
         """Will be called after migrate returns True."""
         # The migration has finished, now we start the post migration
         # to remove the old entity_id data from the states table
@@ -2316,9 +2629,14 @@ class EntityIDMigration(BaseRunTimeMigration):
         # so we set active to True
         _LOGGER.debug("Activating states_meta manager as all data is migrated")
         instance.states_meta_manager.active = True
+        session_generator = (
+            contextlib.nullcontext(_session)
+            if _session
+            else session_scope(session=instance.get_session())
+        )
         with (
             contextlib.suppress(SQLAlchemyError),
-            session_scope(session=instance.get_session()) as session,
+            session_generator as session,
         ):
             # If ix_states_entity_id_last_updated_ts still exists
             # on the states table it means the entity id migration
@@ -2337,6 +2655,49 @@ class EntityIDMigration(BaseRunTimeMigration):
         return has_entity_ids_to_migrate()
 
 
+class EventIDPostMigration(BaseRunTimeMigration):
+    """Migration to remove old event_id index from states."""
+
+    migration_id = "event_id_post_migration"
+    task = MigrationTask
+    migration_version = 2
+
+    @staticmethod
+    def migrate_data(instance: Recorder) -> bool:
+        """Migrate some data, returns True if migration is completed."""
+        return cleanup_legacy_states_event_ids(instance)
+
+    @staticmethod
+    def _legacy_event_id_foreign_key_exists(instance: Recorder) -> bool:
+        """Check if the legacy event_id foreign key exists."""
+        engine = instance.engine
+        assert engine is not None
+        inspector = sqlalchemy.inspect(engine)
+        return bool(
+            next(
+                (
+                    fk
+                    for fk in inspector.get_foreign_keys(TABLE_STATES)
+                    if fk["constrained_columns"] == ["event_id"]
+                ),
+                None,
+            )
+        )
+
+    def needs_migrate_impl(
+        self, instance: Recorder, session: Session
+    ) -> NeedsMigrateResult:
+        """Return if the migration needs to run."""
+        if self.schema_version <= LEGACY_STATES_EVENT_ID_INDEX_SCHEMA_VERSION:
+            return NeedsMigrateResult(needs_migrate=False, migration_done=False)
+        if get_index_by_name(
+            session, TABLE_STATES, LEGACY_STATES_EVENT_ID_INDEX
+        ) is not None or self._legacy_event_id_foreign_key_exists(instance):
+            instance.use_legacy_events_index = True
+            return NeedsMigrateResult(needs_migrate=True, migration_done=False)
+        return NeedsMigrateResult(needs_migrate=False, migration_done=True)
+
+
 def _mark_migration_done(
     session: Session, migration: type[BaseRunTimeMigration]
 ) -> None:
@@ -2350,7 +2711,7 @@ def _mark_migration_done(
 
 def rebuild_sqlite_table(
     session_maker: Callable[[], Session], engine: Engine, table: type[Base]
-) -> None:
+) -> bool:
     """Rebuild an SQLite table.
 
     This must only be called after all migrations are complete
@@ -2405,8 +2766,10 @@ def rebuild_sqlite_table(
         # Swallow the exception since we do not want to ever raise
         # an integrity error as it would cause the database
         # to be discarded and recreated from scratch
+        return False
     else:
         _LOGGER.warning("Rebuilding SQLite table %s finished", orig_name)
+        return True
     finally:
         with session_scope(session=session_maker()) as session:
             # Step 12 - Re-enable foreign keys

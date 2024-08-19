@@ -669,6 +669,9 @@ class ShellyRpcCoordinator(ShellyCoordinatorBase[RpcDevice]):
         """Handle device update."""
         LOGGER.debug("Shelly %s handle update, type: %s", self.name, update_type)
         if update_type is RpcUpdateType.ONLINE:
+            if self.device.connected:
+                LOGGER.debug("Device %s already connected", self.name)
+                return
             self.entry.async_create_background_task(
                 self.hass,
                 self._async_device_connect_task(),
@@ -708,7 +711,8 @@ class ShellyRpcCoordinator(ShellyCoordinatorBase[RpcDevice]):
         """Shutdown the coordinator."""
         if self.device.connected:
             try:
-                await async_stop_scanner(self.device)
+                if not self.sleep_period:
+                    await async_stop_scanner(self.device)
                 await super().shutdown()
             except InvalidAuthError:
                 self.entry.async_start_reauth(self.hass)
