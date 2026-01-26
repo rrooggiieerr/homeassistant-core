@@ -25,12 +25,8 @@ def test_battery_icon() -> None:
     iconbase = "mdi:battery"
     for level in range(0, 100, 5):
         print(  # noqa: T201
-            "Level: %d. icon: %s, charging: %s"
-            % (
-                level,
-                icon.icon_for_battery_level(level, False),
-                icon.icon_for_battery_level(level, True),
-            )
+            f"Level: {level}. icon: {icon.icon_for_battery_level(level, False)}, "
+            f"charging: {icon.icon_for_battery_level(level, True)}"
         )
         if level <= 10:
             postfix_charging = "-outline"
@@ -192,10 +188,10 @@ async def test_caching(hass: HomeAssistant) -> None:
         side_effect=icon.build_resources,
     ) as mock_build:
         load1 = await icon.async_get_icons(hass, "entity_component")
-        assert len(mock_build.mock_calls) == 2
+        assert len(mock_build.mock_calls) == 3  # entity_component, services, triggers
 
         load2 = await icon.async_get_icons(hass, "entity_component")
-        assert len(mock_build.mock_calls) == 2
+        assert len(mock_build.mock_calls) == 3  # entity_component, services, triggers
 
         assert load1 == load2
 

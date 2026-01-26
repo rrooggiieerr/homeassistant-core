@@ -6,8 +6,7 @@ from typing import Any
 import uuid
 
 from homeassistant.components.automation import DOMAIN as AUTOMATION_DOMAIN
-from homeassistant.components.automation.config import (
-    PLATFORM_SCHEMA,
+from homeassistant.components.automation.config import (  # pylint: disable=hass-component-root-import
     async_validate_config_item,
 )
 from homeassistant.config import AUTOMATION_CONFIG_PATH
@@ -48,7 +47,6 @@ def async_setup(hass: HomeAssistant) -> bool:
             "config",
             AUTOMATION_CONFIG_PATH,
             cv.string,
-            PLATFORM_SCHEMA,
             post_write_hook=hook,
             data_validator=async_validate_config_item,
         )
@@ -70,7 +68,16 @@ class EditAutomationConfigView(EditIdBasedConfigView):
         updated_value = {CONF_ID: config_key}
 
         # Iterate through some keys that we want to have ordered in the output
-        for key in ("alias", "description", "trigger", "condition", "action"):
+        for key in (
+            "alias",
+            "description",
+            "triggers",
+            "trigger",
+            "conditions",
+            "condition",
+            "actions",
+            "action",
+        ):
             if key in new_value:
                 updated_value[key] = new_value[key]
 

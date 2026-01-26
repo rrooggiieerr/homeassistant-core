@@ -8,6 +8,7 @@
       'state_class': <SensorStateClass.TOTAL: 'total'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -21,6 +22,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Followers',
     'options': dict({
     }),
     'original_device_class': None,
@@ -28,6 +30,7 @@
     'original_name': 'Followers',
     'platform': 'mastodon',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'followers',
     'unique_id': 'trwnh_mastodon_social_followers',
@@ -46,7 +49,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': '821',
+    'state': '3169',
   })
 # ---
 # name: test_sensors[sensor.mastodon_trwnh_mastodon_social_following-entry]
@@ -58,6 +61,7 @@
       'state_class': <SensorStateClass.TOTAL: 'total'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -71,6 +75,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Following',
     'options': dict({
     }),
     'original_device_class': None,
@@ -78,6 +83,7 @@
     'original_name': 'Following',
     'platform': 'mastodon',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'following',
     'unique_id': 'trwnh_mastodon_social_following',
@@ -96,7 +102,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': '178',
+    'state': '328',
   })
 # ---
 # name: test_sensors[sensor.mastodon_trwnh_mastodon_social_posts-entry]
@@ -108,6 +114,7 @@
       'state_class': <SensorStateClass.TOTAL: 'total'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -121,6 +128,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Posts',
     'options': dict({
     }),
     'original_device_class': None,
@@ -128,6 +136,7 @@
     'original_name': 'Posts',
     'platform': 'mastodon',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'posts',
     'unique_id': 'trwnh_mastodon_social_posts',
@@ -146,6 +155,6 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': '33120',
+    'state': '69523',
   })
 # ---

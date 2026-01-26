@@ -12,6 +12,7 @@ from homeassistant.components.lock import (
     PLATFORM_SCHEMA as LOCK_PLATFORM_SCHEMA,
     LockEntity,
     LockEntityFeature,
+    LockState,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -22,18 +23,15 @@ from homeassistant.const import (
     SERVICE_LOCK,
     SERVICE_OPEN,
     SERVICE_UNLOCK,
-    STATE_JAMMED,
-    STATE_LOCKED,
-    STATE_LOCKING,
-    STATE_OPEN,
-    STATE_OPENING,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
-    STATE_UNLOCKING,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv, entity_registry as er
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import (
+    AddConfigEntryEntitiesCallback,
+    AddEntitiesCallback,
+)
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .entity import GroupEntity
@@ -75,7 +73,7 @@ async def async_setup_platform(
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Initialize Lock Group config entry."""
     registry = er.async_get(hass)
@@ -183,11 +181,11 @@ class LockGroup(GroupEntity, LockEntity):
             self._attr_is_locked = None
         else:
             # Set attributes based on member states and let the lock entity sort out the correct state
-            self._attr_is_jammed = STATE_JAMMED in states
-            self._attr_is_locking = STATE_LOCKING in states
-            self._attr_is_opening = STATE_OPENING in states
-            self._attr_is_open = STATE_OPEN in states
-            self._attr_is_unlocking = STATE_UNLOCKING in states
-            self._attr_is_locked = all(state == STATE_LOCKED for state in states)
+            self._attr_is_jammed = LockState.JAMMED in states
+            self._attr_is_locking = LockState.LOCKING in states
+            self._attr_is_opening = LockState.OPENING in states
+            self._attr_is_open = LockState.OPEN in states
+            self._attr_is_unlocking = LockState.UNLOCKING in states
+            self._attr_is_locked = all(state == LockState.LOCKED for state in states)
 
         self._attr_available = any(state != STATE_UNAVAILABLE for state in states)

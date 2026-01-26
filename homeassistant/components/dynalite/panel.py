@@ -90,7 +90,7 @@ def save_dynalite_config(
     message_data = {
         conf: message_conf[conf] for conf in RELEVANT_CONFS if conf in message_conf
     }
-    LOGGER.info("Updating Dynalite config entry")
+    LOGGER.debug("Updating Dynalite config entry")
     hass.config_entries.async_update_entry(entry, data=message_data)
     connection.send_result(msg["id"], {})
 
@@ -110,7 +110,7 @@ async def async_register_dynalite_frontend(hass: HomeAssistant):
         frontend_url_path=DOMAIN,
         config_panel_domain=DOMAIN,
         webcomponent_name="dynalite-panel",
-        module_url=f"{URL_BASE}/entrypoint-{build_id}.js",
+        module_url=f"{URL_BASE}/entrypoint.{build_id}.js",
         embed_iframe=True,
         require_admin=True,
     )

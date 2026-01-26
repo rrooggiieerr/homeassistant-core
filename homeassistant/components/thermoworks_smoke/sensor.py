@@ -9,7 +9,7 @@ import logging
 
 from requests import RequestException
 from requests.exceptions import HTTPError
-from stringcase import camelcase, snakecase
+from stringcase import camelcase
 import thermoworks_smoke
 import voluptuous as vol
 
@@ -27,9 +27,10 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.util import snakecase
 
 _LOGGER = logging.getLogger(__name__)
 

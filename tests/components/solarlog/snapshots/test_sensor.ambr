@@ -1,62 +1,14 @@
 # serializer version: 1
-# name: test_all_entities[sensor.inverter_1_consumption_total-entry]
-  EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
-    'area_id': None,
-    'capabilities': dict({
-      'state_class': <SensorStateClass.TOTAL: 'total'>,
-    }),
-    'config_entry_id': <ANY>,
-    'device_class': None,
-    'device_id': <ANY>,
-    'disabled_by': None,
-    'domain': 'sensor',
-    'entity_category': None,
-    'entity_id': 'sensor.inverter_1_consumption_total',
-    'has_entity_name': True,
-    'hidden_by': None,
-    'icon': None,
-    'id': <ANY>,
-    'labels': set({
-    }),
-    'name': None,
-    'options': dict({
-    }),
-    'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
-    'original_icon': None,
-    'original_name': 'Consumption total',
-    'platform': 'solarlog',
-    'previous_unique_id': None,
-    'supported_features': 0,
-    'translation_key': 'consumption_total',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-inverter_1-consumption_total',
-    'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
-  })
-# ---
-# name: test_all_entities[sensor.inverter_1_consumption_total-state]
-  StateSnapshot({
-    'attributes': ReadOnlyDict({
-      'device_class': 'energy',
-      'friendly_name': 'Inverter 1 Consumption total',
-      'state_class': <SensorStateClass.TOTAL: 'total'>,
-      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
-    }),
-    'context': <ANY>,
-    'entity_id': 'sensor.inverter_1_consumption_total',
-    'last_changed': <ANY>,
-    'last_reported': <ANY>,
-    'last_updated': <ANY>,
-    'state': '354.687',
-  })
-# ---
 # name: test_all_entities[sensor.inverter_1_consumption_year-entry]
   EntityRegistryEntrySnapshot({
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -70,6 +22,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption year',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -83,9 +36,10 @@
     'original_name': 'Consumption year',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_year',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-inverter_1-consumption_year',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_inverter_1_consumption_year',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -94,6 +48,7 @@
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
       'friendly_name': 'Inverter 1 Consumption year',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -113,6 +68,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -126,16 +82,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'current_power',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-inverter_1-current_power',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_inverter_1_current_power',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -160,8 +121,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -175,6 +139,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption year',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -188,9 +153,10 @@
     'original_name': 'Consumption year',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_year',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-inverter_2-consumption_year',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_inverter_2_consumption_year',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -199,6 +165,7 @@
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
       'friendly_name': 'Inverter 2 Consumption year',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -218,6 +185,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -231,16 +199,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'current_power',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-inverter_2-current_power',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_inverter_2_current_power',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -269,6 +242,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -282,16 +256,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Alternator loss',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Alternator loss',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'alternator_loss',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-alternator_loss',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_alternator_loss',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -299,7 +278,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power',
-      'friendly_name': 'solarlog Alternator loss',
+      'friendly_name': 'SolarLog Alternator loss',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
     }),
@@ -320,6 +299,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -333,6 +313,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Capacity',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 1,
@@ -343,9 +324,10 @@
     'original_name': 'Capacity',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'capacity',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-capacity',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_capacity',
     'unit_of_measurement': '%',
   })
 # ---
@@ -353,7 +335,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power_factor',
-      'friendly_name': 'solarlog Capacity',
+      'friendly_name': 'SolarLog Capacity',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': '%',
     }),
@@ -365,6 +347,117 @@
     'state': '85.5',
   })
 # ---
+# name: test_all_entities[sensor.solarlog_charge_level-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.solarlog_charge_level',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Charge level',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.BATTERY: 'battery'>,
+    'original_icon': None,
+    'original_name': 'Charge level',
+    'platform': 'solarlog',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'charge_level',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_charge_level',
+    'unit_of_measurement': '%',
+  })
+# ---
+# name: test_all_entities[sensor.solarlog_charge_level-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'battery',
+      'friendly_name': 'SolarLog Charge level',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': '%',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.solarlog_charge_level',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '79.0',
+  })
+# ---
+# name: test_all_entities[sensor.solarlog_charging_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.solarlog_charging_power',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Charging power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': None,
+    'original_name': 'Charging power',
+    'platform': 'solarlog',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'charging_power',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_charging_power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_all_entities[sensor.solarlog_charging_power-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'power',
+      'friendly_name': 'SolarLog Charging power',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.solarlog_charging_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '1074.0',
+  })
+# ---
 # name: test_all_entities[sensor.solarlog_consumption_ac-entry]
   EntityRegistryEntrySnapshot({
     'aliases': set({
@@ -374,6 +467,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -387,16 +481,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption AC',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Consumption AC',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_ac',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-consumption_ac',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_consumption_ac',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -404,7 +503,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power',
-      'friendly_name': 'solarlog Consumption AC',
+      'friendly_name': 'SolarLog Consumption AC',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
     }),
@@ -421,8 +520,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -436,6 +538,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption day',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -449,9 +552,10 @@
     'original_name': 'Consumption day',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_day',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-consumption_day',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_consumption_day',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -459,7 +563,8 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Consumption day',
+      'friendly_name': 'SolarLog Consumption day',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -475,8 +580,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -490,6 +598,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption month',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -503,9 +612,10 @@
     'original_name': 'Consumption month',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_month',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-consumption_month',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_consumption_month',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -513,7 +623,8 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Consumption month',
+      'friendly_name': 'SolarLog Consumption month',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -533,6 +644,7 @@
       'state_class': <SensorStateClass.TOTAL: 'total'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -546,6 +658,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption total',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -559,9 +672,10 @@
     'original_name': 'Consumption total',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_total',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-consumption_total',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_consumption_total',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -569,7 +683,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Consumption total',
+      'friendly_name': 'SolarLog Consumption total',
       'state_class': <SensorStateClass.TOTAL: 'total'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
@@ -586,8 +700,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -601,6 +718,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption year',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -614,9 +732,10 @@
     'original_name': 'Consumption year',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_year',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-consumption_year',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_consumption_year',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -624,7 +743,8 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Consumption year',
+      'friendly_name': 'SolarLog Consumption year',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -642,6 +762,7 @@
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -655,6 +776,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Consumption yesterday',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -668,9 +790,10 @@
     'original_name': 'Consumption yesterday',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'consumption_yesterday',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-consumption_yesterday',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_consumption_yesterday',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -678,7 +801,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Consumption yesterday',
+      'friendly_name': 'SolarLog Consumption yesterday',
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -687,6 +810,63 @@
     'last_reported': <ANY>,
     'last_updated': <ANY>,
     'state': '0.00734',
+  })
+# ---
+# name: test_all_entities[sensor.solarlog_discharging_power-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.solarlog_discharging_power',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Discharging power',
+    'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
+    }),
+    'original_device_class': <SensorDeviceClass.POWER: 'power'>,
+    'original_icon': None,
+    'original_name': 'Discharging power',
+    'platform': 'solarlog',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'discharging_power',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_discharging_power',
+    'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+  })
+# ---
+# name: test_all_entities[sensor.solarlog_discharging_power-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'power',
+      'friendly_name': 'SolarLog Discharging power',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.solarlog_discharging_power',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.0',
   })
 # ---
 # name: test_all_entities[sensor.solarlog_efficiency-entry]
@@ -698,6 +878,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -711,6 +892,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Efficiency',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 1,
@@ -721,9 +903,10 @@
     'original_name': 'Efficiency',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'efficiency',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-efficiency',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_efficiency',
     'unit_of_measurement': '%',
   })
 # ---
@@ -731,7 +914,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power_factor',
-      'friendly_name': 'solarlog Efficiency',
+      'friendly_name': 'SolarLog Efficiency',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': '%',
     }),
@@ -748,8 +931,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -763,16 +949,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Installed peak power',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Installed peak power',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'total_power',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-total_power',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_total_power',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -780,7 +971,8 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power',
-      'friendly_name': 'solarlog Installed peak power',
+      'friendly_name': 'SolarLog Installed peak power',
+      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
     }),
     'context': <ANY>,
@@ -798,6 +990,7 @@
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -811,6 +1004,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last update',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -818,9 +1012,10 @@
     'original_name': 'Last update',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_update',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-last_updated',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_last_updated',
     'unit_of_measurement': None,
   })
 # ---
@@ -828,7 +1023,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'timestamp',
-      'friendly_name': 'solarlog Last update',
+      'friendly_name': 'SolarLog Last update',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.solarlog_last_update',
@@ -847,6 +1042,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -860,16 +1056,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power AC',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power AC',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'power_ac',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-power_ac',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_power_ac',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -877,7 +1078,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power',
-      'friendly_name': 'solarlog Power AC',
+      'friendly_name': 'SolarLog Power AC',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
     }),
@@ -898,6 +1099,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -911,16 +1113,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power available',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power available',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'power_available',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-power_available',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_power_available',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -928,7 +1135,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power',
-      'friendly_name': 'solarlog Power available',
+      'friendly_name': 'SolarLog Power available',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
     }),
@@ -949,6 +1156,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -962,16 +1170,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power DC',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power DC',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'power_dc',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-power_dc',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_power_dc',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
 # ---
@@ -979,7 +1192,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power',
-      'friendly_name': 'solarlog Power DC',
+      'friendly_name': 'SolarLog Power DC',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
     }),
@@ -1000,6 +1213,7 @@
       'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1013,16 +1227,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Self-consumption year',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
     'original_icon': None,
     'original_name': 'Self-consumption year',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'self_consumption_year',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-self_consumption_year',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_self_consumption_year',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -1030,7 +1249,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Self-consumption year',
+      'friendly_name': 'SolarLog Self-consumption year',
       'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
@@ -1051,6 +1270,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1064,6 +1284,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Usage',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 1,
@@ -1074,9 +1295,10 @@
     'original_name': 'Usage',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'usage',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-usage',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_usage',
     'unit_of_measurement': '%',
   })
 # ---
@@ -1084,7 +1306,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'power_factor',
-      'friendly_name': 'solarlog Usage',
+      'friendly_name': 'SolarLog Usage',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': '%',
     }),
@@ -1105,6 +1327,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1118,16 +1341,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Voltage AC',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.VOLTAGE: 'voltage'>,
     'original_icon': None,
     'original_name': 'Voltage AC',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'voltage_ac',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-voltage_ac',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_voltage_ac',
     'unit_of_measurement': <UnitOfElectricPotential.VOLT: 'V'>,
   })
 # ---
@@ -1135,7 +1363,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'voltage',
-      'friendly_name': 'solarlog Voltage AC',
+      'friendly_name': 'SolarLog Voltage AC',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfElectricPotential.VOLT: 'V'>,
     }),
@@ -1156,6 +1384,7 @@
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1169,16 +1398,21 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Voltage DC',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.VOLTAGE: 'voltage'>,
     'original_icon': None,
     'original_name': 'Voltage DC',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'voltage_dc',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-voltage_dc',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_voltage_dc',
     'unit_of_measurement': <UnitOfElectricPotential.VOLT: 'V'>,
   })
 # ---
@@ -1186,7 +1420,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'voltage',
-      'friendly_name': 'solarlog Voltage DC',
+      'friendly_name': 'SolarLog Voltage DC',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfElectricPotential.VOLT: 'V'>,
     }),
@@ -1203,8 +1437,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1218,6 +1455,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Yield day',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -1231,9 +1469,10 @@
     'original_name': 'Yield day',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'yield_day',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-yield_day',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_yield_day',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -1241,7 +1480,8 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Yield day',
+      'friendly_name': 'SolarLog Yield day',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -1257,8 +1497,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1272,6 +1515,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Yield month',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -1285,9 +1529,10 @@
     'original_name': 'Yield month',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'yield_month',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-yield_month',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_yield_month',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -1295,7 +1540,8 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Yield month',
+      'friendly_name': 'SolarLog Yield month',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -1315,6 +1561,7 @@
       'state_class': <SensorStateClass.TOTAL: 'total'>,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1328,6 +1575,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Yield total',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -1341,9 +1589,10 @@
     'original_name': 'Yield total',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'yield_total',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-yield_total',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_yield_total',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -1351,7 +1600,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Yield total',
+      'friendly_name': 'SolarLog Yield total',
       'state_class': <SensorStateClass.TOTAL: 'total'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
@@ -1368,8 +1617,11 @@
     'aliases': set({
     }),
     'area_id': None,
-    'capabilities': None,
+    'capabilities': dict({
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+    }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1383,7 +1635,11 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Yield year',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 2,
+      }),
       'sensor.private': dict({
         'suggested_unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
       }),
@@ -1393,9 +1649,10 @@
     'original_name': 'Yield year',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'yield_year',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-yield_year',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_yield_year',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -1403,7 +1660,8 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Yield year',
+      'friendly_name': 'SolarLog Yield year',
+      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
@@ -1411,7 +1669,7 @@
     'last_changed': <ANY>,
     'last_reported': <ANY>,
     'last_updated': <ANY>,
-    'state': '1.0230',
+    'state': '1.023',
   })
 # ---
 # name: test_all_entities[sensor.solarlog_yield_yesterday-entry]
@@ -1421,6 +1679,7 @@
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -1434,6 +1693,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Yield yesterday',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 3,
@@ -1447,9 +1707,10 @@
     'original_name': 'Yield yesterday',
     'platform': 'solarlog',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'yield_yesterday',
-    'unique_id': 'ce5f5431554d101905d31797e1232da8-yield_yesterday',
+    'unique_id': 'ce5f5431554d101905d31797e1232da8_yield_yesterday',
     'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
   })
 # ---
@@ -1457,7 +1718,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
-      'friendly_name': 'solarlog Yield yesterday',
+      'friendly_name': 'SolarLog Yield yesterday',
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,

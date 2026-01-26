@@ -14,7 +14,7 @@ from homeassistant.components.device_tracker import (
 )
 from homeassistant.const import CONF_HOST, CONF_TOKEN
 from homeassistant.core import HomeAssistant
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,12 +37,12 @@ def get_scanner(
     host = config[CONF_HOST]
     token = config[CONF_TOKEN]
 
-    _LOGGER.info("Initializing with host %s (token %s...)", host, token[:5])
+    _LOGGER.debug("Initializing with host %s (token %s...)", host, token[:5])
 
     try:
         device = WifiRepeater(host, token)
         device_info = device.info()
-        _LOGGER.info(
+        _LOGGER.debug(
             "%s %s %s detected",
             device_info.model,
             device_info.firmware_version,

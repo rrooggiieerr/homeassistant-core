@@ -5,14 +5,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
-from functools import cached_property
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
+from propcache.api import cached_property
 import voluptuous as vol
 
-from homeassistant.components import websocket_api
+from homeassistant.components import automation, websocket_api
 from homeassistant.components.blueprint import CONF_USE_BLUEPRINT
+from homeassistant.components.labs import async_listen as async_labs_listen
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_MODE,
@@ -39,7 +40,7 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.config_validation import make_entity_service_schema
 from homeassistant.helpers.entity import ToggleEntity
 from homeassistant.helpers.entity_component import EntityComponent
@@ -280,6 +281,21 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.services.async_register(
         DOMAIN, SERVICE_TOGGLE, toggle_service, schema=SCRIPT_TURN_ONOFF_SCHEMA
     )
+
+    @callback
+    def new_triggers_conditions_listener() -> None:
+        """Handle new_triggers_conditions flag change."""
+        hass.async_create_task(
+            reload_service(ServiceCall(hass, DOMAIN, SERVICE_RELOAD))
+        )
+
+    async_labs_listen(
+        hass,
+        automation.DOMAIN,
+        automation.NEW_TRIGGERS_CONDITIONS_FEATURE_FLAG,
+        new_triggers_conditions_listener,
+    )
+
     websocket_api.async_register_command(hass, websocket_config)
 
     return True

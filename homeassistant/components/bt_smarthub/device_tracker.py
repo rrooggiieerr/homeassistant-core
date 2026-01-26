@@ -15,7 +15,7 @@ from homeassistant.components.device_tracker import (
 )
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class BTSmartHubScanner(DeviceScanner):
         if self.get_bt_smarthub_data():
             self.success_init = True
         else:
-            _LOGGER.info("Failed to connect to %s", self.smarthub.router_ip)
+            _LOGGER.warning("Failed to connect to %s", self.smarthub.router_ip)
 
     def scan_devices(self):
         """Scan for new devices and return a list with found device IDs."""
@@ -88,7 +88,7 @@ class BTSmartHubScanner(DeviceScanner):
         if not self.success_init:
             return
 
-        _LOGGER.info("Scanning")
+        _LOGGER.debug("Scanning")
         if not (data := self.get_bt_smarthub_data()):
             _LOGGER.warning("Error scanning devices")
             return

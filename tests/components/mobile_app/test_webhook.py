@@ -101,7 +101,7 @@ async def test_webhook_handle_render_template(
 ) -> None:
     """Test that we render templates properly."""
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "render_template",
             "data": {
@@ -133,7 +133,7 @@ async def test_webhook_handle_call_services(
     calls = async_mock_service(hass, "test", "mobile_app")
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json=CALL_SERVICE,
     )
 
@@ -158,7 +158,7 @@ async def test_webhook_handle_fire_event(
     hass.bus.async_listen("test_event", store_event)
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]), json=FIRE_EVENT
+        f"/api/webhook/{create_registrations[1]['webhook_id']}", json=FIRE_EVENT
     )
 
     assert resp.status == HTTPStatus.OK
@@ -224,7 +224,7 @@ async def test_webhook_handle_get_zones(
         await hass.services.async_call(ZONE_DOMAIN, "reload", blocking=True)
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={"type": "get_zones"},
     )
 
@@ -310,6 +310,73 @@ async def test_webhook_handle_get_config(
     assert expected_dict == json
 
 
+async def test_webhook_handle_get_config_with_cloudhook_and_active_subscription(
+    hass: HomeAssistant,
+    create_registrations: tuple[dict[str, Any], dict[str, Any]],
+    webhook_client: TestClient,
+) -> None:
+    """Test get_config returns cloudhook_url when there's an active subscription."""
+    webhook_id = create_registrations[1]["webhook_id"]
+    webhook_url = f"/api/webhook/{webhook_id}"
+
+    # Get the config entry and add cloudhook_url to it
+    config_entry = hass.config_entries.async_entries(DOMAIN)[1]
+    hass.config_entries.async_update_entry(
+        config_entry,
+        data={**config_entry.data, "cloudhook_url": "https://hooks.nabu.casa/test"},
+    )
+
+    with (
+        patch(
+            "homeassistant.components.cloud.async_active_subscription",
+            return_value=True,
+        ),
+        patch(
+            "homeassistant.components.cloud.async_remote_ui_url",
+            return_value="https://remote.ui.url",
+        ),
+    ):
+        resp = await webhook_client.post(webhook_url, json={"type": "get_config"})
+        assert resp.status == HTTPStatus.OK
+        json_resp = await resp.json()
+
+        # Cloudhook should be in response
+        assert "cloudhook_url" in json_resp
+        assert json_resp["cloudhook_url"] == "https://hooks.nabu.casa/test"
+        # Remote UI should also be in response
+        assert "remote_ui_url" in json_resp
+
+
+async def test_webhook_handle_get_config_with_cloudhook_no_subscription(
+    hass: HomeAssistant,
+    create_registrations: tuple[dict[str, Any], dict[str, Any]],
+    webhook_client: TestClient,
+) -> None:
+    """Test get_config doesn't return cloudhook_url without active subscription."""
+    webhook_id = create_registrations[1]["webhook_id"]
+    webhook_url = f"/api/webhook/{webhook_id}"
+
+    # Get the config entry and add cloudhook_url to it
+    config_entry = hass.config_entries.async_entries(DOMAIN)[1]
+    hass.config_entries.async_update_entry(
+        config_entry,
+        data={**config_entry.data, "cloudhook_url": "https://hooks.nabu.casa/test"},
+    )
+
+    with patch(
+        "homeassistant.components.cloud.async_active_subscription",
+        return_value=False,
+    ):
+        resp = await webhook_client.post(webhook_url, json={"type": "get_config"})
+        assert resp.status == HTTPStatus.OK
+        json_resp = await resp.json()
+
+        # Cloudhook should NOT be in response even though it exists in config entry
+        assert "cloudhook_url" not in json_resp
+        # Remote UI should also not be in response
+        assert "remote_ui_url" not in json_resp
+
+
 async def test_webhook_returns_error_incorrect_json(
     create_registrations: tuple[dict[str, Any], dict[str, Any]],
     webhook_client: TestClient,
@@ -317,7 +384,7 @@ async def test_webhook_returns_error_incorrect_json(
 ) -> None:
     """Test that an error is returned when JSON is invalid."""
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]), data="not json"
+        f"/api/webhook/{create_registrations[1]['webhook_id']}", data="not json"
     )
 
     assert resp.status == HTTPStatus.BAD_REQUEST
@@ -350,7 +417,7 @@ async def test_webhook_handle_decryption(
     container = {"type": msg["type"], "encrypted": True, "encrypted_data": data}
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -374,7 +441,7 @@ async def test_webhook_handle_decryption_legacy(
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -399,7 +466,7 @@ async def test_webhook_handle_decryption_fail(
     data = encrypt_payload(key, RENDER_TEMPLATE["data"])
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -412,7 +479,7 @@ async def test_webhook_handle_decryption_fail(
     data = encrypt_payload(key, "{not_valid", encode_json=False)
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -424,7 +491,7 @@ async def test_webhook_handle_decryption_fail(
     data = encrypt_payload(key[::-1], RENDER_TEMPLATE["data"])
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -444,7 +511,7 @@ async def test_webhook_handle_decryption_legacy_fail(
     data = encrypt_payload_legacy(key, RENDER_TEMPLATE["data"])
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -457,7 +524,7 @@ async def test_webhook_handle_decryption_legacy_fail(
     data = encrypt_payload_legacy(key, "{not_valid", encode_json=False)
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -469,7 +536,7 @@ async def test_webhook_handle_decryption_legacy_fail(
     data = encrypt_payload_legacy(key[::-1], RENDER_TEMPLATE["data"])
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -490,7 +557,7 @@ async def test_webhook_handle_decryption_legacy_upgrade(
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -508,7 +575,7 @@ async def test_webhook_handle_decryption_legacy_upgrade(
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -526,7 +593,7 @@ async def test_webhook_handle_decryption_legacy_upgrade(
     container = {"type": "render_template", "encrypted": True, "encrypted_data": data}
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]), json=container
+        f"/api/webhook/{create_registrations[0]['webhook_id']}", json=container
     )
 
     assert resp.status == HTTPStatus.OK
@@ -539,7 +606,7 @@ async def test_webhook_requires_encryption(
 ) -> None:
     """Test that encrypted registrations only accept encrypted data."""
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[0]["webhook_id"]),
+        f"/api/webhook/{create_registrations[0]['webhook_id']}",
         json=RENDER_TEMPLATE,
     )
 
@@ -560,7 +627,7 @@ async def test_webhook_update_location_without_locations(
 
     # start off with a location set by name
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "update_location",
             "data": {"location_name": STATE_HOME},
@@ -575,7 +642,7 @@ async def test_webhook_update_location_without_locations(
 
     # set location to an 'unknown' state
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "update_location",
             "data": {"altitude": 123},
@@ -597,7 +664,7 @@ async def test_webhook_update_location_with_gps(
 ) -> None:
     """Test that location can be updated."""
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "update_location",
             "data": {"gps": [1, 2], "gps_accuracy": 10, "altitude": -10},
@@ -621,7 +688,7 @@ async def test_webhook_update_location_with_gps_without_accuracy(
 ) -> None:
     """Test that location can be updated."""
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "update_location",
             "data": {"gps": [1, 2]},
@@ -659,7 +726,7 @@ async def test_webhook_update_location_with_location_name(
         await hass.services.async_call(ZONE_DOMAIN, "reload", blocking=True)
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "update_location",
             "data": {"location_name": "zone_name"},
@@ -672,7 +739,7 @@ async def test_webhook_update_location_with_location_name(
     assert state.state == "zone_name"
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "update_location",
             "data": {"location_name": STATE_HOME},
@@ -685,7 +752,7 @@ async def test_webhook_update_location_with_location_name(
     assert state.state == STATE_HOME
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={
             "type": "update_location",
             "data": {"location_name": STATE_NOT_HOME},
@@ -876,7 +943,7 @@ async def test_webhook_handle_scan_tag(
     events = async_capture_events(hass, EVENT_TAG_SCANNED)
 
     resp = await webhook_client.post(
-        "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+        f"/api/webhook/{create_registrations[1]['webhook_id']}",
         json={"type": "scan_tag", "data": {"tag_id": "mock-tag-id"}},
     )
 
@@ -1052,7 +1119,7 @@ async def test_webhook_handle_conversation_process(
         return_value=mock_conversation_agent,
     ):
         resp = await webhook_client.post(
-            "/api/webhook/{}".format(create_registrations[1]["webhook_id"]),
+            f"/api/webhook/{create_registrations[1]['webhook_id']}",
             json={
                 "type": "conversation_process",
                 "data": {
@@ -1081,6 +1148,7 @@ async def test_webhook_handle_conversation_process(
             },
         },
         "conversation_id": None,
+        "continue_conversation": False,
     }
 
 

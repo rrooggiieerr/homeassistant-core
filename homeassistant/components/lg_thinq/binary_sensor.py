@@ -15,7 +15,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import ThinqConfigEntry
 from .entity import ThinQEntity
@@ -76,12 +76,14 @@ BINARY_SENSOR_DESC: dict[ThinQProperty, ThinQBinarySensorEntityDescription] = {
     ),
     ThinQProperty.WATER_HEATER_OPERATION_MODE: ThinQBinarySensorEntityDescription(
         key=ThinQProperty.WATER_HEATER_OPERATION_MODE,
-        translation_key="operation_mode",
+        device_class=BinarySensorDeviceClass.POWER,
+        translation_key=ThinQProperty.WATER_HEATER_OPERATION_MODE,
         on_key="power_on",
     ),
     ThinQProperty.ONE_TOUCH_FILTER: ThinQBinarySensorEntityDescription(
         key=ThinQProperty.ONE_TOUCH_FILTER,
         translation_key=ThinQProperty.ONE_TOUCH_FILTER,
+        on_key="on",
     ),
 }
 
@@ -135,11 +137,11 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ThinqConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up an entry for binary sensor platform."""
     entities: list[ThinQBinarySensorEntity] = []
-    for coordinator in entry.runtime_data.values():
+    for coordinator in entry.runtime_data.coordinators.values():
         if (
             descriptions := DEVICE_TYPE_BINARY_SENSOR_MAP.get(
                 coordinator.api.device.device_type

@@ -11,6 +11,7 @@
       'step': 1,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -24,6 +25,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Backup reserve',
     'options': dict({
     }),
     'original_device_class': <NumberDeviceClass.BATTERY: 'battery'>,
@@ -31,6 +33,7 @@
     'original_name': 'Backup reserve',
     'platform': 'teslemetry',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'backup_reserve_percent',
     'unique_id': '123456-backup_reserve_percent',
@@ -69,6 +72,7 @@
       'step': 1,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -82,13 +86,15 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Off-grid reserve',
     'options': dict({
     }),
     'original_device_class': <NumberDeviceClass.BATTERY: 'battery'>,
     'original_icon': 'mdi:battery-unknown',
-    'original_name': 'Off grid reserve',
+    'original_name': 'Off-grid reserve',
     'platform': 'teslemetry',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'off_grid_vehicle_charging_reserve_percent',
     'unique_id': '123456-off_grid_vehicle_charging_reserve_percent',
@@ -99,7 +105,7 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'device_class': 'battery',
-      'friendly_name': 'Energy Site Off grid reserve',
+      'friendly_name': 'Energy Site Off-grid reserve',
       'icon': 'mdi:battery-unknown',
       'max': 100,
       'min': 0,
@@ -127,6 +133,7 @@
       'step': 1,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -140,6 +147,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Charge current',
     'options': dict({
     }),
     'original_device_class': <NumberDeviceClass.CURRENT: 'current'>,
@@ -147,9 +155,10 @@
     'original_name': 'Charge current',
     'platform': 'teslemetry',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'charge_state_charge_current_request',
-    'unique_id': 'LRWXF7EK4KC700000-charge_state_charge_current_request',
+    'unique_id': 'LRW3F7EK4NC700000-charge_state_charge_current_request',
     'unit_of_measurement': <UnitOfElectricCurrent.AMPERE: 'A'>,
   })
 # ---
@@ -184,6 +193,7 @@
       'step': 1,
     }),
     'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'device_class': None,
     'device_id': <ANY>,
     'disabled_by': None,
@@ -197,6 +207,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Charge limit',
     'options': dict({
     }),
     'original_device_class': <NumberDeviceClass.BATTERY: 'battery'>,
@@ -204,9 +215,10 @@
     'original_name': 'Charge limit',
     'platform': 'teslemetry',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'charge_state_charge_limit_soc',
-    'unique_id': 'LRWXF7EK4KC700000-charge_state_charge_limit_soc',
+    'unique_id': 'LRW3F7EK4NC700000-charge_state_charge_limit_soc',
     'unit_of_measurement': '%',
   })
 # ---
@@ -228,4 +240,10 @@
     'last_updated': <ANY>,
     'state': '80',
   })
+# ---
+# name: test_number_streaming[number.test_charge_current-state]
+  '24'
+# ---
+# name: test_number_streaming[number.test_charge_limit-state]
+  '99'
 # ---
