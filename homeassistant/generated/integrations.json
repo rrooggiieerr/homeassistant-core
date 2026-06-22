@@ -8165,6 +8165,12 @@
       "config_flow": true,
       "iot_class": "cloud_push"
     },
+    "xyscreens": {
+      "name": "XY Screens",
+      "integration_type": "device",
+      "config_flow": true,
+      "iot_class": "assumed_state"
+    },
     "yale": {
       "name": "Yale (non-US/Canada)",
       "integrations": {

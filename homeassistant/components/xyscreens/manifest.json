@@ -1,0 +1,12 @@
+{
+  "domain": "xyscreens",
+  "name": "XY Screens",
+  "codeowners": ["@rrooggiieerr"],
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/xyscreens",
+  "integration_type": "device",
+  "iot_class": "assumed_state",
+  "loggers": ["xyscreens"],
+  "quality_scale": "bronze",
+  "requirements": ["xyscreens==1.1.0"]
+}

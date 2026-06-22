@@ -2058,6 +2058,7 @@ CLAUDE.md @home-assistant/core
 /homeassistant/components/xmpp/ @fabaff @flowolf
 /homeassistant/components/xthings_cloud/ @XthingsJacobs
 /tests/components/xthings_cloud/ @XthingsJacobs
+/homeassistant/components/xyscreens/ @rrooggiieerr
 /homeassistant/components/yale/ @bdraco
 /tests/components/yale/ @bdraco
 /homeassistant/components/yale_smart_alarm/ @gjohansson-ST

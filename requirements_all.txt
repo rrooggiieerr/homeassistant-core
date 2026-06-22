@@ -3417,6 +3417,9 @@ xmltodict==1.0.4
 # homeassistant.components.xs1
 xs1-api-client==3.0.0
 
+# homeassistant.components.xyscreens
+xyscreens==1.1.0
+
 # homeassistant.components.yale_smart_alarm
 yalesmartalarmclient==0.4.3
 

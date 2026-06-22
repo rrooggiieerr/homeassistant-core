@@ -1,0 +1,135 @@
+"""The XY Screens integration."""
+
+import logging
+from typing import Any
+
+from xyscreens import XYScreens
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS, Platform
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import entity_registry as er
+
+from .const import (
+    CONF_ADDRESS_XYSCREENS,
+    CONF_DEVICE_TYPE,
+    CONF_DEVICE_TYPE_PROJECTOR_SCREEN,
+    CONF_INVERTED,
+    CONF_SERIAL_PORT,
+    CONF_TIME_CLOSE,
+    CONF_TIME_OPEN,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+PLATFORMS: list[Platform] = [Platform.COVER]
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up XY Screens from a config entry."""
+    await er.async_migrate_entries(hass, entry.entry_id, async_migrate_entity_entry)
+
+    # Test if we can connect to the device.
+    serial_port = entry.data[CONF_SERIAL_PORT]
+    address = bytes.fromhex(entry.data.get(CONF_ADDRESS, CONF_ADDRESS_XYSCREENS))
+    time_open = entry.options[CONF_TIME_OPEN]
+    screen = XYScreens(serial_port, address, time_open)
+    if not await screen.async_test_connection():
+        raise ConfigEntryNotReady(f"Unable to connect to device {serial_port}")
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    entry.async_on_unload(entry.add_update_listener(update_listener))
+
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    # It should not be necessary to close the serial port because we close
+    # it after every use in cover.py, i.e. no need to do entry["client"].close()
+
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update."""
+    hass.config_entries.async_schedule_reload(entry.entry_id)
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    if config_entry.version > 3:
+        # This means the user has downgraded from a future version
+        return False
+
+    if config_entry.version == 1:
+        _LOGGER.debug("Migrating config entry from 1 to 2")
+        new_title = config_entry.data[CONF_SERIAL_PORT]
+
+        new_data = {CONF_SERIAL_PORT: config_entry.data.get(CONF_SERIAL_PORT)}
+
+        new_options = {
+            CONF_TIME_OPEN: config_entry.data.get(CONF_TIME_OPEN),
+            CONF_TIME_CLOSE: config_entry.data.get(CONF_TIME_CLOSE),
+        }
+
+        hass.config_entries.async_update_entry(
+            config_entry, title=new_title, data=new_data, options=new_options, version=2
+        )
+
+    if config_entry.version == 2 and config_entry.minor_version < 2:
+        _LOGGER.debug("Migrating config entry from 2.1 to 2.2")
+        new_unique_id = f"{config_entry.data.get(CONF_SERIAL_PORT)}-aaeeee"
+        new_title = (
+            f"{config_entry.data.get(CONF_SERIAL_PORT)} {CONF_ADDRESS_XYSCREENS}"
+        )
+        new_data = {
+            CONF_SERIAL_PORT: config_entry.data.get(CONF_SERIAL_PORT),
+            CONF_ADDRESS: CONF_ADDRESS_XYSCREENS,
+            CONF_DEVICE_TYPE: CONF_DEVICE_TYPE_PROJECTOR_SCREEN,
+        }
+        new_options = {
+            CONF_TIME_OPEN: config_entry.options.get(CONF_TIME_OPEN),
+            CONF_TIME_CLOSE: config_entry.options.get(CONF_TIME_CLOSE),
+            CONF_INVERTED: config_entry.options.get(CONF_INVERTED, False),
+        }
+
+        hass.config_entries.async_update_entry(
+            config_entry,
+            unique_id=new_unique_id,
+            title=new_title,
+            data=new_data,
+            options=new_options,
+            minor_version=2,
+            version=2,
+        )
+
+    if config_entry.version == 3:
+        hass.config_entries.async_update_entry(
+            config_entry,
+            minor_version=2,
+            version=2,
+        )
+
+    _LOGGER.debug(
+        "Migration to configuration version %s.%s successful",
+        config_entry.version,
+        config_entry.minor_version,
+    )
+
+    return True
+
+
+@callback
+def async_migrate_entity_entry(
+    entry: er.RegistryEntry,
+) -> dict[str, Any] | None:
+    """Migrates old unique ID to the new unique ID."""
+    if entry.unique_id != entry.config_entry_id:
+        _LOGGER.debug("Migrating entity unique id")
+        return {"new_unique_id": entry.config_entry_id}
+
+    # No migration needed
+    return None
