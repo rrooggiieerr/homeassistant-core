@@ -65,6 +65,7 @@ class XYScreensCover(CoverEntity, RestoreEntity):
 
     _attr_assumed_state = True
     _attr_has_entity_name = True
+    _attr_name = None
     _attr_supported_features = (
         CoverEntityFeature.OPEN
         | CoverEntityFeature.CLOSE
