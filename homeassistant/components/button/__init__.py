@@ -1,12 +1,10 @@
 """Component to pressing a button as platforms."""
 
 from datetime import timedelta
-from enum import StrEnum
 import logging
-from typing import final
+from typing import final, override
 
 from propcache.api import cached_property
-import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE
@@ -19,7 +17,12 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 from homeassistant.util.hass_dict import HassKey
 
-from .const import DOMAIN, SERVICE_PRESS
+from .const import (  # noqa: F401
+    DEVICE_CLASSES_SCHEMA,
+    DOMAIN,
+    SERVICE_PRESS,
+    ButtonDeviceClass,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,16 +34,6 @@ SCAN_INTERVAL = timedelta(seconds=30)
 
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
 
-
-class ButtonDeviceClass(StrEnum):
-    """Device class for buttons."""
-
-    IDENTIFY = "identify"
-    RESTART = "restart"
-    UPDATE = "update"
-
-
-DEVICE_CLASSES_SCHEMA = vol.All(vol.Lower, vol.Coerce(ButtonDeviceClass))
 
 # mypy: disallow-any-generics
 
@@ -91,6 +84,7 @@ class ButtonEntity(RestoreEntity, cached_properties=CACHED_PROPERTIES_WITH_ATTR_
     _attr_state: None = None
     __last_pressed_isoformat: str | None = None
 
+    @override
     def _default_to_device_class_name(self) -> bool:
         """Return True if an unnamed entity should be named by its device class.
 
@@ -99,6 +93,7 @@ class ButtonEntity(RestoreEntity, cached_properties=CACHED_PROPERTIES_WITH_ATTR_
         return self.device_class is not None
 
     @cached_property
+    @override
     def device_class(self) -> ButtonDeviceClass | None:
         """Return the class of this entity."""
         if hasattr(self, "_attr_device_class"):
@@ -109,6 +104,7 @@ class ButtonEntity(RestoreEntity, cached_properties=CACHED_PROPERTIES_WITH_ATTR_
 
     @cached_property
     @final
+    @override
     def state(self) -> str | None:
         """Return the entity state."""
         return self.__last_pressed_isoformat
@@ -129,6 +125,7 @@ class ButtonEntity(RestoreEntity, cached_properties=CACHED_PROPERTIES_WITH_ATTR_
         self.async_write_ha_state()
         await self.async_press()
 
+    @override
     async def async_internal_added_to_hass(self) -> None:
         """Call when the button is added to hass."""
         await super().async_internal_added_to_hass()
