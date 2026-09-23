@@ -1,7 +1,7 @@
 """The XY Screens integration."""
 
 import logging
-from typing import Any
+from typing import Any, Final
 
 from xyscreens import XYScreens
 
@@ -19,9 +19,10 @@ from .const import (
     CONF_SERIAL_PORT,
     CONF_TIME_CLOSE,
     CONF_TIME_OPEN,
+    DOMAIN,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.COVER]
 
@@ -36,7 +37,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     time_open = entry.options[CONF_TIME_OPEN]
     screen = XYScreens(serial_port, address, time_open)
     if not await screen.async_test_connection():
-        raise ConfigEntryNotReady(f"Unable to connect to device {serial_port}")
+        raise ConfigEntryNotReady(
+            translation_domain=DOMAIN, translation_key="connection_error"
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -63,6 +66,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     if config_entry.version > 3:
         # This means the user has downgraded from a future version
         return False
+
+    if config_entry.version == 3:
+        hass.config_entries.async_update_entry(
+            config_entry,
+            minor_version=2,
+            version=2,
+        )
+        return True
 
     if config_entry.version == 1:
         _LOGGER.debug("Migrating config entry from 1 to 2")
@@ -102,13 +113,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
             title=new_title,
             data=new_data,
             options=new_options,
-            minor_version=2,
-            version=2,
-        )
-
-    if config_entry.version == 3:
-        hass.config_entries.async_update_entry(
-            config_entry,
             minor_version=2,
             version=2,
         )

@@ -1,20 +1,41 @@
 {
+  "common": {
+    "projector_lift": "Projector lift",
+    "projector_screen": "Projector screen"
+  },
   "config": {
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
     },
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_address": "Invalid address",
-      "nonexisting_serial_port": "Serial poort does not exist",
       "unknown": "Unexpected error"
     },
     "step": {
+      "reconfigure": {
+        "data": {
+          "address": "[%key:component::xyscreens::config::step::user::data::address%]",
+          "inverted": "[%key:component::xyscreens::config::step::user::data::inverted%]",
+          "serial_port": "[%key:component::xyscreens::config::step::user::data::serial_port%]",
+          "time_close": "[%key:component::xyscreens::config::step::user::data::time_close%]",
+          "time_open": "[%key:component::xyscreens::config::step::user::data::time_open%]"
+        },
+        "data_description": {
+          "address": "[%key:component::xyscreens::config::step::user::data_description::address%]",
+          "inverted": "[%key:component::xyscreens::config::step::user::data_description::inverted%]",
+          "serial_port": "[%key:component::xyscreens::config::step::user::data_description::serial_port%]",
+          "time_close": "Time needed to close the projector screen.",
+          "time_open": "Time needed to open the projector screen."
+        },
+        "title": "Reconfigure {title}"
+      },
       "user": {
         "data": {
           "address": "Address",
           "device_type": "Device type",
-          "inverted": "Invert behaviour",
+          "inverted": "Invert behavior",
           "serial_port": "Serial port",
           "time_close": "Close time",
           "time_open": "Open time"
@@ -31,67 +52,42 @@
   },
   "device": {
     "projector_lift": {
-      "name": "Projector Lift"
+      "name": "[%key:component::xyscreens::common::projector_lift%]"
     },
     "projector_screen": {
-      "name": "Projector Screen"
+      "name": "[%key:component::xyscreens::common::projector_screen%]"
     }
   },
   "entity": {
     "cover": {
-      "projector_lift": {
+      "projector_lift_inverted": {
         "state": {
-          "closed": "Open",
-          "closing": "Opening",
-          "open": "Closed",
-          "opening": "Closing"
+          "closed": "[%key:common::state::open%]",
+          "closing": "[%key:common::state::opening%]",
+          "open": "[%key:common::state::closed%]",
+          "opening": "[%key:common::state::closing%]"
         }
       },
-      "projector_screen": {
+      "projector_screen_inverted": {
         "state": {
-          "closed": "Open",
-          "closing": "Opening",
-          "open": "Closed",
-          "opening": "Closing"
+          "closed": "[%key:common::state::open%]",
+          "closing": "[%key:common::state::opening%]",
+          "open": "[%key:common::state::closed%]",
+          "opening": "[%key:common::state::closing%]"
         }
       }
     }
   },
-  "options": {
-    "step": {
-      "projector_lift": {
-        "data": {
-          "inverted": "Invert behaviour",
-          "time_close": "Close time",
-          "time_open": "Open time"
-        },
-        "data_description": {
-          "inverted": "This integration follows the Cover Entity, where open means the screen is retracted and closed the screen is extracted, the same way curtains and garage doors work. For a projection screen this is counterintuitive. You can reverse the behavior.",
-          "time_close": "Time needed to close the projector lift.",
-          "time_open": "Time needed to open the projector lift."
-        },
-        "title": "Projector lift options"
-      },
-      "projector_screen": {
-        "data": {
-          "inverted": "Invert behaviour",
-          "time_close": "Close time",
-          "time_open": "Open time"
-        },
-        "data_description": {
-          "inverted": "This integration follows the Cover Entity, where open means the screen is retracted and closed the screen is extracted, the same way curtains and garage doors work. For a projection screen this is counterintuitive. You can reverse the behavior.",
-          "time_close": "Time needed to close the projector screen.",
-          "time_open": "Time needed to open the projector screen."
-        },
-        "title": "Projector screen options"
-      }
+  "exceptions": {
+    "connection_error": {
+      "message": "Connection error"
     }
   },
   "selector": {
     "device_type": {
       "options": {
-        "projector_lift": "Projector lift",
-        "projector_screen": "Projector screen"
+        "projector_lift": "[%key:component::xyscreens::common::projector_lift%]",
+        "projector_screen": "[%key:component::xyscreens::common::projector_screen%]"
       }
     }
   }
