@@ -36,7 +36,6 @@ def mock_toggle_gap() -> Generator[None]:
     ("device_type", "device_name"),
     [
         (LEDIrDeviceType.GENERIC_13_KEY, "13-key remote"),
-        (LEDIrDeviceType.GENERIC_21_KEY, "21-key remote"),
         (LEDIrDeviceType.GENERIC_24_KEY, "24-key remote"),
         (LEDIrDeviceType.GENERIC_40_KEY, "40-key remote"),
         (LEDIrDeviceType.GENERIC_44_KEY, "44-key remote"),
@@ -266,36 +265,88 @@ async def test_reconfigure_flow_no_emitters(
 
 
 @pytest.mark.parametrize(
-    ("next_variant_presses", "expected_device_type", "expected_address"),
+    (
+        "device_type",
+        "hidden_device_type",
+        "device_name",
+        "next_variant_presses",
+        "expected_device_type",
+        "expected_address",
+    ),
     [
-        pytest.param(0, LEDIrDeviceType.GENERIC_10_KEY, 0xFF00, id="first"),
-        pytest.param(1, LEDIrDeviceType.GENERIC_10_KEY_B708, 0xB708, id="second"),
-        pytest.param(2, LEDIrDeviceType.GENERIC_10_KEY, 0xFF00, id="wrap_around"),
+        pytest.param(
+            LEDIrDeviceType.GENERIC_10_KEY,
+            LEDIrDeviceType.GENERIC_10_KEY_B708,
+            "10-key remote",
+            0,
+            LEDIrDeviceType.GENERIC_10_KEY,
+            0xFF00,
+            id="10_key_first",
+        ),
+        pytest.param(
+            LEDIrDeviceType.GENERIC_10_KEY,
+            LEDIrDeviceType.GENERIC_10_KEY_B708,
+            "10-key remote",
+            1,
+            LEDIrDeviceType.GENERIC_10_KEY_B708,
+            0xB708,
+            id="10_key_second",
+        ),
+        pytest.param(
+            LEDIrDeviceType.GENERIC_10_KEY,
+            LEDIrDeviceType.GENERIC_10_KEY_B708,
+            "10-key remote",
+            2,
+            LEDIrDeviceType.GENERIC_10_KEY,
+            0xFF00,
+            id="10_key_wrap_around",
+        ),
+        pytest.param(
+            LEDIrDeviceType.GENERIC_21_KEY,
+            LEDIrDeviceType.GENERIC_21_KEY_2,
+            "21-key remote",
+            0,
+            LEDIrDeviceType.GENERIC_21_KEY,
+            0xFF00,
+            id="21_key_first",
+        ),
+        pytest.param(
+            LEDIrDeviceType.GENERIC_21_KEY,
+            LEDIrDeviceType.GENERIC_21_KEY_2,
+            "21-key remote",
+            1,
+            LEDIrDeviceType.GENERIC_21_KEY_2,
+            0xFF00,
+            id="21_key_second",
+        ),
     ],
 )
 @pytest.mark.usefixtures("mock_infrared_receiver_entity")
-async def test_form_10_key_test_device(
+async def test_form_test_device(
     hass: HomeAssistant,
     mock_setup_entry: AsyncMock,
     mock_infrared_emitter_entity: MockInfraredEmitterEntity,
+    device_type: LEDIrDeviceType,
+    hidden_device_type: LEDIrDeviceType,
+    device_name: str,
     next_variant_presses: int,
     expected_device_type: LEDIrDeviceType,
     expected_address: int,
 ) -> None:
-    """Test the 10-key remote flow tests code sets until the light reacts."""
+    """Test remotes with several code sets are tested until the light reacts."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
     )
     assert result["type"] is FlowResultType.FORM
     assert (
-        LEDIrDeviceType.GENERIC_10_KEY_B708
+        hidden_device_type
         not in (result["data_schema"].schema[CONF_DEVICE_TYPE].config["options"])
     )
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {
-            CONF_DEVICE_TYPE: LEDIrDeviceType.GENERIC_10_KEY,
+            CONF_DEVICE_TYPE: device_type,
             CONF_INFRARED_ENTITY_ID: EMITTER_ENTITY_ID,
             CONF_INFRARED_RECEIVER_ENTITY_ID: RECEIVER_ENTITY_ID,
         },
@@ -329,7 +380,7 @@ async def test_form_10_key_test_device(
     await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "LED light with 10-key remote via Test IR emitter"
+    assert result["title"] == f"LED light with {device_name} via Test IR emitter"
     assert result["data"] == {
         CONF_DEVICE_TYPE: expected_device_type,
         CONF_INFRARED_ENTITY_ID: EMITTER_ENTITY_ID,

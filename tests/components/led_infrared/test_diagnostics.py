@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
         LEDIrDeviceType.GENERIC_10_KEY_B708,
         LEDIrDeviceType.GENERIC_13_KEY,
         LEDIrDeviceType.GENERIC_21_KEY,
+        LEDIrDeviceType.GENERIC_21_KEY_2,
         LEDIrDeviceType.GENERIC_24_KEY,
         LEDIrDeviceType.GENERIC_40_KEY,
         LEDIrDeviceType.GENERIC_44_KEY,

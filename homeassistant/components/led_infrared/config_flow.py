@@ -36,6 +36,7 @@ DEVICE_NAMES = {
     LEDIrDeviceType.GENERIC_10_KEY_B708: "10-key remote",
     LEDIrDeviceType.GENERIC_13_KEY: "13-key remote",
     LEDIrDeviceType.GENERIC_21_KEY: "21-key remote",
+    LEDIrDeviceType.GENERIC_21_KEY_2: "21-key remote",
     LEDIrDeviceType.GENERIC_24_KEY: "24-key remote",
     LEDIrDeviceType.GENERIC_40_KEY: "40-key remote",
     LEDIrDeviceType.GENERIC_44_KEY: "44-key remote",
@@ -47,6 +48,10 @@ DEVICE_VARIANTS = {
     LEDIrDeviceType.GENERIC_10_KEY: [
         LEDIrDeviceType.GENERIC_10_KEY,
         LEDIrDeviceType.GENERIC_10_KEY_B708,
+    ],
+    LEDIrDeviceType.GENERIC_21_KEY: [
+        LEDIrDeviceType.GENERIC_21_KEY,
+        LEDIrDeviceType.GENERIC_21_KEY_2,
     ],
 }
 

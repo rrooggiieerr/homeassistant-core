@@ -8,6 +8,7 @@ from infrared_protocols.codes.generic.led import (
     Generic10KeyCode,
     Generic13KeyCode,
     Generic21KeyCode,
+    Generic21KeyCode2,
     Generic24KeyCode,
     Generic40KeyCode,
     Generic44KeyCode,
@@ -48,6 +49,15 @@ def light_only() -> Generator[None]:
         yield
 
 
+@pytest.fixture(autouse=True)
+def no_repeat_delay() -> Generator[None]:
+    """Skip the delay between repeated commands."""
+    with patch(
+        "homeassistant.components.led_infrared.light.UNRESPONSIVE_REPEAT_DELAY", 0
+    ):
+        yield
+
+
 @pytest.mark.parametrize(
     "config_entry",
     [
@@ -55,6 +65,7 @@ def light_only() -> Generator[None]:
         LEDIrDeviceType.GENERIC_10_KEY_B708,
         LEDIrDeviceType.GENERIC_13_KEY,
         LEDIrDeviceType.GENERIC_21_KEY,
+        LEDIrDeviceType.GENERIC_21_KEY_2,
         LEDIrDeviceType.GENERIC_24_KEY,
         LEDIrDeviceType.GENERIC_40_KEY,
         LEDIrDeviceType.GENERIC_44_KEY,
@@ -609,6 +620,118 @@ _LIGHT_ACTIONS: dict[
             SERVICE_TURN_ON,
             {ATTR_EFFECT: "floral_white"},
             [Generic21KeyCode.ON, Generic21KeyCode.FLORAL_WHITE],
+        ),
+    ],
+    LEDIrDeviceType.GENERIC_21_KEY_2: [
+        (SERVICE_TURN_ON, {}, [Generic21KeyCode2.ON]),
+        (SERVICE_TURN_OFF, {}, [Generic21KeyCode2.OFF]),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "flash"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.FLASH],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "smooth"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.SMOOTH],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "red"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.RED],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "green"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.GREEN],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "blue"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.BLUE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "cold_white"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.COLD_WHITE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "warm_white"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.WARM_WHITE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "orange"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.ORANGE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "light_green"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.LIGHT_GREEN],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "sky_blue"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.SKY_BLUE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "amber"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.AMBER],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "cyan"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.CYAN],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "purple"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.PURPLE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "light_blue"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.LIGHT_BLUE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "pink"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.PINK],
+        ),
+        # During strobe and fade the light misses most commands, so they repeat.
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "strobe"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.STROBE],
+        ),
+        (
+            SERVICE_TURN_OFF,
+            {},
+            [Generic21KeyCode2.OFF] * 8,
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "fade"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.FADE],
+        ),
+        # The light is on already, so nothing is sent without a new effect.
+        (SERVICE_TURN_ON, {}, []),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "red"},
+            [Generic21KeyCode2.RED] * 8,
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "strobe"},
+            [Generic21KeyCode2.ON, Generic21KeyCode2.STROBE],
+        ),
+        (
+            SERVICE_TURN_ON,
+            {ATTR_EFFECT: "smooth"},
+            [Generic21KeyCode2.SMOOTH] * 8,
         ),
     ],
 }

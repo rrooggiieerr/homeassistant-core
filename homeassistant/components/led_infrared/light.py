@@ -1,6 +1,9 @@
 """Light platform for LED Infrared integration."""
 
+import asyncio
 from typing import Any, override
+
+from infrared_protocols.codes.generic.led import BaseGenericLEDCode
 
 from homeassistant.components.infrared import InfraredEmitterConsumerEntity
 from homeassistant.components.light import (
@@ -18,6 +21,14 @@ from .const import CONF_DEVICE_TYPE, CONF_INFRARED_ENTITY_ID, LEDIrDeviceType
 from .entity import LEDIrBaseEntity
 
 PARALLEL_UPDATES = 1
+
+# Effects during which the light only catches a key now and then, so the next
+# command is repeated until it most likely got through.
+UNRESPONSIVE_EFFECTS: dict[LEDIrDeviceType, set[str]] = {
+    LEDIrDeviceType.GENERIC_21_KEY_2: {"strobe", "fade"},
+}
+UNRESPONSIVE_REPEAT_COUNT = 8
+UNRESPONSIVE_REPEAT_DELAY = 0.25
 
 
 SUPPORTED_EFFECTS = {
@@ -57,6 +68,7 @@ SUPPORTED_EFFECTS = {
     LEDIrDeviceType.GENERIC_10_KEY: ["candle", "light"],
     LEDIrDeviceType.GENERIC_10_KEY_B708: ["candle", "light"],
     LEDIrDeviceType.GENERIC_21_KEY: ["auto"],
+    LEDIrDeviceType.GENERIC_21_KEY_2: ["flash", "strobe", "fade", "smooth"],
 }
 
 
@@ -137,6 +149,21 @@ SUPPORTED_COLORS = {
         "light_green",
         "floral_white",
     ],
+    LEDIrDeviceType.GENERIC_21_KEY_2: [
+        "red",
+        "green",
+        "blue",
+        "cold_white",
+        "warm_white",
+        "orange",
+        "light_green",
+        "sky_blue",
+        "amber",
+        "cyan",
+        "purple",
+        "light_blue",
+        "pink",
+    ],
 }
 
 
@@ -179,15 +206,36 @@ class LEDIrLightEntity(LEDIrBaseEntity, InfraredEmitterConsumerEntity, LightEnti
         self._attr_effect_list = SUPPORTED_EFFECTS.get(
             device_type, []
         ) + SUPPORTED_COLORS.get(device_type, [])
+        self._unresponsive_effects = UNRESPONSIVE_EFFECTS.get(device_type, set())
+
+    @property
+    def _unresponsive(self) -> bool:
+        """Return whether the light runs an effect that makes it miss commands."""
+        return (
+            bool(self._attr_is_on) and self._attr_effect in self._unresponsive_effects
+        )
+
+    async def _async_send_code(
+        self, code: BaseGenericLEDCode, *, repeat: bool = False
+    ) -> None:
+        """Send a code, repeated while the light misses commands."""
+        for index in range(UNRESPONSIVE_REPEAT_COUNT if repeat else 1):
+            if index:
+                await asyncio.sleep(UNRESPONSIVE_REPEAT_DELAY)
+            await self._send_command(code.to_command())
 
     @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn device on."""
-        await self._send_command(self._codes.ON.to_command())
+        # While the light runs an effect it is on already, so only the new effect
+        # is sent, repeated until it most likely got through.
+        repeat = self._unresponsive
+        if not repeat:
+            await self._async_send_code(self._codes.ON)
         self._attr_is_on = True
         effect: str | None = kwargs.get(ATTR_EFFECT)
         if effect and effect in self._attr_effect_list:
-            await self._send_command(self._codes[effect.upper()].to_command())
+            await self._async_send_code(self._codes[effect.upper()], repeat=repeat)
             self._attr_effect = effect
 
         self.async_write_ha_state()
@@ -195,7 +243,7 @@ class LEDIrLightEntity(LEDIrBaseEntity, InfraredEmitterConsumerEntity, LightEnti
     @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        await self._send_command(self._codes.OFF.to_command())
+        await self._async_send_code(self._codes.OFF, repeat=self._unresponsive)
         self._attr_is_on = False
         self.async_write_ha_state()
 
